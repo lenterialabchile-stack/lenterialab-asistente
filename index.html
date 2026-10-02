@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LenteriaLab | Asistente de compra</title>
+  <meta name="description" content="Asistente de LenteriaLab para resolver dudas sobre anteojos, medidas, despachos y tecnología de lentes." />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111111;
+      --muted:#6f6f6f;
+      --soft:#f5f5f3;
+      --line:#e8e8e5;
+      --black:#0b0b0b;
+      --ok:#eef8f1;
+      --ok-border:#c6dfcd;
+      --human:#fff8ea;
+      --human-border:#ead7a6;
+      --error:#fff0f0;
+      --error-border:#e2bcbc;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .topbar{
+      background:#0b0b0b;
+      color:#fff;
+      text-align:center;
+      padding:10px 16px;
+      font-size:13px;
+      letter-spacing:.02em;
+    }
+    header{
+      height:76px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 5vw;
+      border-bottom:1px solid var(--line);
+      background:#fff;
+    }
+    .logo{
+      font-weight:800;
+      font-size:22px;
+      letter-spacing:.08em;
+    }
+    .nav-note{
+      font-size:14px;
+      color:var(--muted);
+    }
+    .hero{
+      max-width:1180px;
+      margin:0 auto;
+      padding:64px 28px 36px;
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:48px;
+      align-items:start;
+    }
+    .eyebrow{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:16px;
+    }
+    h1{
+      font-size:clamp(44px,6vw,78px);
+      line-height:.95;
+      letter-spacing:-.05em;
+      margin:0 0 24px;
+      max-width:720px;
+    }
+    .lead{
+      color:#555;
+      font-size:18px;
+      line-height:1.6;
+      max-width:620px;
+      margin:0 0 30px;
+    }
+    .trust{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:26px;
+    }
+    .pill{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 13px;
+      font-size:13px;
+      background:#fff;
+    }
+    .assistant-card{
+      background:var(--soft);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:28px;
+      position:sticky;
+      top:24px;
+    }
+    .assistant-card h2{
+      margin:0 0 6px;
+      font-size:26px;
+      letter-spacing:-.02em;
+    }
+    .assistant-card .desc{
+      margin:0 0 22px;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:15px;
+    }
+    label{
+      display:block;
+      font-size:14px;
+      font-weight:700;
+      margin-bottom:8px;
+    }
+    input, textarea{
+      width:100%;
+      border:1px solid #d8d8d5;
+      background:#fff;
+      border-radius:12px;
+      padding:14px 15px;
+      font:inherit;
+      font-size:15px;
+      outline:none;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    input:focus,textarea:focus{
+      border-color:#222;
+      box-shadow:0 0 0 3px rgba(0,0,0,.05);
+    }
+    input{margin-bottom:18px}
+    textarea{
+      min-height:120px;
+      resize:vertical;
+      margin-bottom:14px;
+    }
+    .quick-title{
+      font-size:12px;
+      font-weight:700;
+      color:var(--muted);
+      margin:4px 0 10px;
+    }
+    .quick{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:18px;
+    }
+    .quick button{
+      width:auto;
+      background:#fff;
+      color:#222;
+      border:1px solid #d9d9d6;
+      padding:9px 11px;
+      font-size:12px;
+      font-weight:600;
+      border-radius:999px;
+    }
+    button.submit{
+      width:100%;
+      border:0;
+      background:var(--black);
+      color:#fff;
+      border-radius:12px;
+      padding:15px 18px;
+      font-weight:800;
+      font-size:15px;
+      cursor:pointer;
+      transition:transform .12s, opacity .2s;
+    }
+    button.submit:hover{transform:translateY(-1px)}
+    button.submit:disabled{opacity:.55;cursor:wait;transform:none}
+    .result{
+      display:none;
+      margin-top:18px;
+      border-radius:12px;
+      padding:16px;
+      line-height:1.5;
+      font-size:14px;
+    }
+    .result.ok{display:block;background:var(--ok);border:1px solid var(--ok-border)}
+    .result.human{display:block;background:var(--human);border:1px solid var(--human-border)}
+    .result.error{display:block;background:var(--error);border:1px solid var(--error-border)}
+    .how{
+      max-width:1180px;
+      margin:0 auto;
+      padding:30px 28px 70px;
+    }
+    .how h3{
+      font-size:28px;
+      margin:0 0 18px;
+      letter-spacing:-.02em;
+    }
+    .steps{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+    }
+    .step{
+      border-top:1px solid var(--line);
+      padding-top:18px;
+    }
+    .step strong{
+      display:block;
+      font-size:13px;
+      margin-bottom:7px;
+    }
+    .step p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:14px;
+    }
+    footer{
+      border-top:1px solid var(--line);
+      padding:26px 5vw 36px;
+      color:var(--muted);
+      font-size:13px;
+      display:flex;
+      justify-content:space-between;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+    @media(max-width:850px){
+      .hero{grid-template-columns:1fr;padding-top:42px}
+      .assistant-card{position:static}
+      .steps{grid-template-columns:1fr}
+      .nav-note{display:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">ENVÍO GRATIS en compras sobre $100.000 · Despacho a todo Chile</div>
+
+  <header>
+    <div class="logo">LENTERIALAB</div>
+    <div class="nav-note">Asistente de compra con IA</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Encuentra tus anteojos ideales</div>
+        <h1>Resuelve tu duda antes de elegir.</h1>
+        <p class="lead">
+          Pregunta por medidas, despacho, modelos para mujer, tecnología fotocromática
+          o recomendaciones según tu deporte. Si la consulta requiere revisión humana,
+          la derivamos automáticamente.
+        </p>
+
+        <div class="trust">
+          <span class="pill">Productos 100% originales</span>
+          <span class="pill">Despacho a todo Chile</span>
+          <span class="pill">Atención rápida</span>
+        </div>
+      </div>
+
+      <section class="assistant-card">
+        <h2>¿En qué te ayudamos?</h2>
+        <p class="desc">Escribe tu consulta y te responderemos en segundos cuando tengamos la información disponible.</p>
+
+        <form id="leadForm">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" type="text" placeholder="Tu nombre" required />
+
+          <label for="mensaje">Tu consulta</label>
+          <textarea id="mensaje" placeholder="Ej: ¿Cómo sé qué medida necesito?" required></textarea>
+
+          <div class="quick-title">Preguntas rápidas</div>
+          <div class="quick">
+            <button type="button" data-q="¿Hacen envíos a domicilio?">Envíos</button>
+            <button type="button" data-q="¿Cómo sé qué medida necesito?">Medidas</button>
+            <button type="button" data-q="¿Qué significa que un lente sea fotocromático?">Fotocromáticos</button>
+            <button type="button" data-q="¿Tienen anteojos para mujer?">Para mujer</button>
+          </div>
+
+          <button class="submit" id="submitBtn" type="submit">Enviar consulta</button>
+        </form>
+
+        <div id="result" class="result"></div>
+      </section>
+    </section>
+
+    <section class="how">
+      <h3>Así funciona</h3>
+      <div class="steps">
+        <div class="step">
+          <strong>01 · Preguntas</strong>
+          <p>Escribes tu duda sobre un producto, talla, despacho o tecnología del lente.</p>
+        </div>
+        <div class="step">
+          <strong>02 · Analizamos</strong>
+          <p>El asistente clasifica la consulta y responde solo si tiene información suficiente.</p>
+        </div>
+        <div class="step">
+          <strong>03 · Resolvemos o derivamos</strong>
+          <p>Las consultas claras se responden al instante; los casos especiales pasan a una persona.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>LenteriaLab · Anteojos originales</span>
+    <span>Asistente de atención comercial — PoC UAI 2026</span>
+  </footer>
+
+  <script>
+    const WEBHOOK_URL = "https://lenterialabchile.app.n8n.cloud/webhook/lenterialab-consulta";
+
+    const form = document.getElementById("leadForm");
+    const result = document.getElementById("result");
+    const button = document.getElementById("submitBtn");
+    const mensaje = document.getElementById("mensaje");
+
+    document.querySelectorAll("[data-q]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        mensaje.value = btn.dataset.q;
+        mensaje.focus();
+      });
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const nombre = document.getElementById("nombre").value.trim();
+      const texto = mensaje.value.trim();
+
+      result.className = "result";
+      result.textContent = "";
+      button.disabled = true;
+      button.textContent = "Procesando...";
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre, mensaje: texto })
+        });
+
+        if (!response.ok) throw new Error("Error de respuesta");
+
+        const data = await response.json();
+
+        if (data.estado === "respondido_automaticamente") {
+          result.className = "result ok";
+        } else if (data.estado === "derivado_a_humano") {
+          result.className = "result human";
+        } else {
+          result.className = "result ok";
+        }
+
+        result.textContent = data.respuesta || "Consulta recibida correctamente.";
+      } catch (error) {
+        result.className = "result error";
+        result.textContent = "No pudimos procesar tu consulta en este momento. Intenta nuevamente.";
+      } finally {
+        button.disabled = false;
+        button.textContent = "Enviar consulta";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+{
+  "name": "LenteriaLab- Atencion IA v1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lenterialab-consulta",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c5c667ea-36fc-41ad-b170-403d59133ae6",
+      "name": "Webhook",
+      "webhookId": "31496b0b-cf83-4c77-bc3b-4ed9b38bb45b"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Eres el asistente de atención comercial de LenteriaLab, una tienda online de anteojos.\n\nTu tarea es analizar el mensaje del cliente y responder SOLO en formato JSON válido.\n\nFORMATO DE SALIDA OBLIGATORIO:\n\n{\n  \"categoria\": \"\",\n  \"puede_responder\": true,\n  \"respuesta\": \"\"\n}\n\nCATEGORÍAS POSIBLES:\n- tienda_fisica\n- precio\n- mujer\n- medidas\n- despacho\n- fotocromatico\n- recomendacion\n- otra\n- requiere_humano\n\nINFORMACIÓN AUTORIZADA DE LENTERIALAB:\n\n- Tienda física: [No contamos con tienda física]\n- Envíos a domicilio: [Sí, hacemos envíos a domicilio dentro de Chile]\n- Productos para mujer: [Sí. Gran parte de nuestros modelos son unisex y también contamos con opciones adecuadas para mujer. Si el cliente pide una recomendación, preguntar para qué deporte o uso los necesita y qué tipo de calce busca.]\n- Cómo elegir la medida correcta: [Si miras por dentro de la varilla de cualquier anteojo, vas a encontrar algo asi: El primer número es lo que mide solo un lente a lo ancho en su parte mas ancha. Mientras más grande, más cobertura y más presencia en la cara. El segundo número es del puente que mide la separación entre los dos lentes. El tercer número es lo que mide la patilla completa, desde la bisagra hasta la punta que va detrás de la oreja. Suele andar entre 120 y 150 mm y es la medida que menos problemas da. Igualmente en el siguiente link esta detallada la información: https://lenterialab.com/pages/guia-de-lentes]\n- Qué significa fotocromático: [El lente se aclara u oscurece solo según la luz del ambiente. Uno solo te sirve de día pleno y en sombra, sin cambiar de anteojo. Es la tecnología Vario de Adidas — ideal si haces deporte en condiciones de luz cambiante.]\n- Recomendaciones por deporte: [¡Claro! 😊 Para recomendarte el anteojo más adecuado, cuéntanos qué deporte practicas y te indicamos las mejores opciones según tu necesidad.]\n- Precios de productos: responder solo si el precio exacto está disponible en la información entregada al sistema.\n\nREGLAS IMPORTANTES:\n\n1. No inventes información.\n2. No supongas precios, stock, direcciones, horarios ni características que no estén en la información autorizada.\n3. Si puedes responder usando la información disponible, usa:\n   \"puede_responder\": true\n4. Si falta información o la consulta requiere criterio humano, usa:\n   \"categoria\": \"requiere_humano\"\n   \"puede_responder\": false\n   \"respuesta\": \"\"\n5. Si el cliente hace varias preguntas, intenta responder todas las que puedas con seguridad.\n6. Si solo falta un dato simple para poder ayudar, puedes pedir ese dato en \"respuesta\".\n7. Usa español de Chile, tono cercano y claro.\n8. No menciones que eres una IA.\n9. Devuelve SOLO el JSON. No agregues explicaciones antes ni después.\n\nMENSAJE DEL CLIENTE:\n\n{{ $json.body.mensaje }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "a1f83f87-8c1a-41d4-905e-a3156a9106f0",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "509e2aab-b249-4946-8e51-1f0883c2730f",
+              "leftValue": "={{ $json.puede_responder }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -48
+      ],
+      "id": "a58f74dc-5475-44ca-a7e9-afd921b67b04",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.output[0].content[0].text;\n\nconst parsed = JSON.parse(raw);\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        144
+      ],
+      "id": "c55170c5-4e55-41c6-8926-6718fdcc2e9d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"estado\": \"respondido_automaticamente\",\n  \"respuesta\": \"{{ $json.respuesta }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1552,
+        -176
+      ],
+      "id": "c38f57a1-dcdc-4ce8-8e30-f589286b2826",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1744,
+        288
+      ],
+      "id": "7e5062b3-10ef-4d7e-a9f7-139f0cd1482f",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "27704b26-01a0-42c9-b8dd-1317ee4c7cc2",
+              "name": "estado",
+              "value": "derivado_a_humano",
+              "type": "string"
+            },
+            {
+              "id": "55e53bec-8bb3-4b61-9c94-2c001e10e417",
+              "name": "respuesta",
+              "value": "Gracias por tu consulta. La vamos a derivar a una persona de LenteriaLab para que te pueda ayudar.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        144
+      ],
+      "id": "7c35b8ee-6c9b-4f22-8fb1-d021a597a7a0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VtlfIcMWRvRo660bcGDs-qp7edNKtlXW9oArMqid0LM",
+          "mode": "list",
+          "cachedResultName": "LenteriaLab - Registro consultas IA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VtlfIcMWRvRo660bcGDs-qp7edNKtlXW9oArMqid0LM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VtlfIcMWRvRo660bcGDs-qp7edNKtlXW9oArMqid0LM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{ $now }}",
+            "nombre": "={{ $('Webhook').item.json.body.nombre }}",
+            "mensaje": "={{ $('Webhook').item.json.body.mensaje }}",
+            "categoria": "={{ $json.categoria }}",
+            "puede_responder": "={{ $json.puede_responder }}",
+            "respuesta": "={{ $json.respuesta }}",
+            "estado": "respondido_automaticamente"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "puede_responder",
+              "displayName": "puede_responder",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "respuesta",
+              "displayName": "respuesta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1184,
+        -112
+      ],
+      "id": "17eceaf3-c74f-4b31-bab9-617719648d31",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "C8KNPowp9nUyz45n",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VtlfIcMWRvRo660bcGDs-qp7edNKtlXW9oArMqid0LM",
+          "mode": "list",
+          "cachedResultName": "LenteriaLab - Registro consultas IA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VtlfIcMWRvRo660bcGDs-qp7edNKtlXW9oArMqid0LM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VtlfIcMWRvRo660bcGDs-qp7edNKtlXW9oArMqid0LM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{ $now }}",
+            "nombre": "={{ $('Webhook').item.json.body.nombre }}",
+            "mensaje": "={{ $('Webhook').item.json.body.mensaje }}",
+            "categoria": "={{ $('If').item.json.categoria }}",
+            "puede_responder": "={{ $('If').item.json.puede_responder }}",
+            "respuesta": "Gracias por tu consulta. La vamos a derivar a una persona de LenteriaLab para que te pueda ayudar.",
+            "estado": "derivado_a_humano"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "puede_responder",
+              "displayName": "puede_responder",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "respuesta",
+              "displayName": "respuesta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1472,
+        288
+      ],
+      "id": "a0b90724-f219-4e7b-8150-d940d69f157f",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "C8KNPowp9nUyz45n",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "PROYECTO FINAL – LENTERIALAB\n\nFormato:\nLanding + formulario automatizado + flujo n8n con IA\n\nProblema:\nLenteriaLab recibe aproximadamente 400 consultas comerciales al mes.\nUna gran parte corresponde a preguntas repetitivas que hoy responden manualmente los socios.\n\nLínea base preliminar:\n- 400 consultas/mes\n- ~5 minutos por consulta\n- ~33,3 horas/mes de atención manual\n- 85–90% de las consultas se estiman potencialmente automatizables\n\nQué hace el flujo:\n1. Recibe una consulta desde la landing.\n2. El LLM clasifica la consulta.\n3. Decide si puede responder con seguridad.\n4. Si puede responder, genera una respuesta automática.\n5. Si no puede responder, deriva el caso a una persona.\n6. Registra el resultado en Google Sheets.\n\nPruebas realizadas:\n- “¿Hacen envíos a domicilio?” → respuesta automática.\n- “¿Cómo sé qué medida necesito?” → respuesta automática.\n- “¿Qué significa fotocromático?” → respuesta automática.\n- “¿Tienen anteojos para mujer?” → respuesta automática.\n- Consulta médica/oftalmológica → derivación a humano.\n\nLanding:\nhttps://lenterialab.vercel.app/\n\nEstado:\nMVP funcional de punta a punta.",
+        "height": 672,
+        "width": 688
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        -496
+      ],
+      "id": "a7e6a8ed-daf9-4d13-9f21-b04e8d4e3037",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "260276ee-dbd3-48fd-b922-e7ef9c19c7a0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4106c3bd6af9a3efa03f9b8f8054cf3229a3de868344b41bf87ede71c6663f62"
+  },
+  "nodeGroups": [],
+  "id": "f0JlXfJ385vLmlwl",
+  "tags": []
+}
